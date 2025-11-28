@@ -74,22 +74,56 @@ sudo cp -r /path/to/publish-pi/* /opt/piclock/
 sudo chmod +x /opt/piclock/PiClock
 ```
 
-### Bước 4: Cấu hình Telegram Bot (Tùy chọn)
+### Bước 4: Tạo file cấu hình
+
+```bash
+# Tạo thư mục config
+sudo mkdir -p /opt/piclock/Config
+
+# Tạo file config
+sudo nano /opt/piclock/Config/AppConfig.json
+```
+
+Thêm nội dung sau (điều chỉnh theo nhu cầu):
+
+```json
+{
+  "Location": {
+    "Latitude": 10.0668,
+    "Longitude": 105.9088,
+    "Name": "Vĩnh Long, Việt Nam"
+  },
+  "Telegram": {
+    "BotToken": "YOUR_BOT_TOKEN_HERE",
+    "CheckIntervalSeconds": 5,
+    "MaxVisibleMessages": 3
+  },
+  "Slideshow": {
+    "IntervalSeconds": 10,
+    "ImageFolder": "images",
+    "KenBurnsAnimationSeconds": 20
+  },
+  "Weather": {
+    "UpdateIntervalMinutes": 30
+  }
+}
+```
+
+### Bước 5: Cấu hình Telegram Bot (Tùy chọn)
 
 Nếu muốn nhận thông báo từ Telegram:
 
-```bash
-# 1. Tạo bot mới với @BotFather trên Telegram
-# 2. Lấy Bot Token (dạng: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz)
-# 3. Mở file MainWindow.axaml.cs và thay BOT_TOKEN
-nano /opt/piclock/MainWindow.axaml.cs
+1. Mở Telegram, tìm `@BotFather`
+2. Gửi lệnh `/newbot` và làm theo hướng dẫn
+3. Copy Bot Token nhận được
+4. Mở file config và thay `YOUR_BOT_TOKEN_HERE` bằng token thực
 
-# Tìm dòng:
-# private const string BOT_TOKEN = "BOT_TOKEN_HERE";
-# Thay bằng token của bạn
+```bash
+sudo nano /opt/piclock/Config/AppConfig.json
+# Sửa dòng: "BotToken": "1234567890:ABCdefGHI..."
 ```
 
-### Bước 5: Tạo thư mục ảnh
+### Bước 6: Tạo thư mục ảnh
 
 ```bash
 # Tạo thư mục images
@@ -171,56 +205,63 @@ sudo systemctl disable piclock
 
 ## ⚙️ Cấu hình
 
-### Thay đổi vị trí thời tiết
+### File cấu hình JSON
 
-Mở file `MainWindow.axaml.cs` và chỉnh sửa:
+Ứng dụng sử dụng file `Config/AppConfig.json` để quản lý tất cả cấu hình:
 
-```csharp
-// Config vị trí mặc định (Vĩnh Long)
-private const double LAT = 10.0668;   // Vĩ độ
-private const double LON = 105.9088;  // Kinh độ
+```json
+{
+  "Location": {
+    "Latitude": 10.0668,
+    "Longitude": 105.9088,
+    "Name": "Vĩnh Long, Việt Nam"
+  },
+  "Telegram": {
+    "BotToken": "BOT_TOKEN_HERE",
+    "CheckIntervalSeconds": 5,
+    "MaxVisibleMessages": 3
+  },
+  "Slideshow": {
+    "IntervalSeconds": 10,
+    "ImageFolder": "images",
+    "KenBurnsAnimationSeconds": 20
+  },
+  "Weather": {
+    "UpdateIntervalMinutes": 30
+  }
+}
+```
+
+**Chỉnh sửa file cấu hình:**
+
+```bash
+nano /opt/piclock/Config/AppConfig.json
 ```
 
 ### Cấu hình Telegram Bot
-
-```csharp
-// Thay token của bạn vào đây
-private const string BOT_TOKEN = "1234567890:ABCdefGHIjklMNOpqrsTUVwxyz";
-```
 
 **Cách lấy Bot Token:**
 1. Mở Telegram, tìm `@BotFather`
 2. Gửi lệnh `/newbot`
 3. Đặt tên và username cho bot
-4. Copy token nhận được
+4. Copy token nhận được và paste vào `BotToken` trong file config
 
 **Cách sử dụng:**
 - Gửi tin nhắn bất kỳ đến bot → Hiện trên màn hình
 - Gửi `/clear` → Xóa toàn bộ tin nhắn
 - Hỗ trợ cả Group và Channel
 
-### Thay đổi thời gian chuyển ảnh
+### Các tham số cấu hình
 
-Trong `MainWindow.axaml.cs`:
-
-```csharp
-// Setup Slideshow (10 giây đổi ảnh)
-_slideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-```
-
-### Thay đổi thời gian cập nhật thời tiết
-
-```csharp
-// Timer update thời tiết mỗi 30 phút
-var weatherTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(30) };
-```
-
-### Thay đổi thời gian kiểm tra Telegram
-
-```csharp
-// Kiểm tra tin nhắn mới mỗi 5 giây
-_teleTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-```
+| Tham số | Mô tả | Mặc định |
+|---------|-------|----------|
+| `Location.Latitude` | Vĩ độ vị trí | 10.0668 |
+| `Location.Longitude` | Kinh độ vị trí | 105.9088 |
+| `Telegram.BotToken` | Token bot Telegram | BOT_TOKEN_HERE |
+| `Telegram.CheckIntervalSeconds` | Kiểm tra tin nhắn mới (giây) | 5 |
+| `Telegram.MaxVisibleMessages` | Số tin nhắn tối đa hiển thị | 3 |
+| `Slideshow.IntervalSeconds` | Thời gian chuyển ảnh (giây) | 10 |
+| `Weather.UpdateIntervalMinutes` | Cập nhật thời tiết (phút) | 30 |
 
 ## 📁 Cấu trúc thư mục
 
@@ -232,11 +273,41 @@ _teleTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
 ├── createdump
 ├── Assets/                    # Font Inter & JetBrains Mono
 │   └── Fonts/
+├── Config/                    # Thư mục cấu hình
+│   └── AppConfig.json        # File cấu hình JSON
+├── Models/                    # Data models
+│   └── AppConfig.cs
+├── Services/                  # Business logic
+│   ├── TelegramService.cs
+│   ├── WeatherService.cs
+│   └── SlideshowService.cs
 └── images/                    # Thư mục chứa ảnh slideshow
     ├── photo1.jpg
     ├── photo2.png
     └── ...
 ```
+
+## 🏗️ Kiến trúc ứng dụng
+
+### Cấu trúc code mới (Tối ưu)
+
+**Models** - Chứa các class định nghĩa dữ liệu:
+- `AppConfig.cs` - Quản lý cấu hình ứng dụng từ JSON
+
+**Services** - Các service xử lý logic nghiệp vụ:
+- `TelegramService.cs` - Kết nối và nhận tin nhắn Telegram
+- `WeatherService.cs` - Lấy dữ liệu thời tiết từ API
+- `SlideshowService.cs` - Quản lý slideshow ảnh
+
+**MainWindow** - UI logic, kết hợp các service lại
+
+### Ưu điểm của cấu trúc mới
+
+✅ **Separation of Concerns** - Tách biệt rõ ràng giữa UI và logic  
+✅ **Dễ bảo trì** - Mỗi service độc lập, dễ sửa lỗi  
+✅ **Dễ test** - Có thể test từng service riêng  
+✅ **Cấu hình linh hoạt** - Thay đổi config không cần rebuild  
+✅ **Tái sử dụng** - Services có thể dùng cho các project khác
 
 ## 🖼️ Định dạng ảnh hỗ trợ
 

@@ -1,0 +1,20 @@
+{
+  "Location": {
+    "Latitude": 10.0668,
+    "Longitude": 105.9088,
+    "Name": "Vĩnh Long, Việt Nam"
+  },
+  "Telegram": {
+    "BotToken": "BOT_TOKEN_HERE",
+    "CheckIntervalSeconds": 5,
+    "MaxVisibleMessages": 3
+  },
+  "Slideshow": {
+    "IntervalSeconds": 10,
+    "ImageFolder": "images",
+    "KenBurnsAnimationSeconds": 20
+  },
+  "Weather": {
+    "UpdateIntervalMinutes": 30
+  }
+}

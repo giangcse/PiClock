@@ -1,206 +1,152 @@
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Media.Imaging;
-using Avalonia.Threading;
 using Avalonia;
 using Avalonia.Animation;
+using Avalonia.Animation.Easings;
+using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.Layout;
 using System;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using AvaBitmap = Avalonia.Media.Imaging.Bitmap;
-using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Polling;
+using PiClock.Models;
+using PiClock.Services;
 
 namespace PiClock;
 
 public partial class MainWindow : Window
 {
-    private DispatcherTimer _clockTimer;
-    private DispatcherTimer _slideTimer;
+    private readonly AppConfig _config;
+    private readonly TelegramService _telegramService;
+    private readonly WeatherService _weatherService;
+    private readonly SlideshowService _slideshowService;
+
+    private DispatcherTimer _clockTimer = null!;
+    private DispatcherTimer _slideTimer = null!;
     private DispatcherTimer? _teleTimer;
-
-    private string[] _imageFiles = Array.Empty<string>();
-    private int _currentImageIndex = 0;
-
-    private const double LAT = 10.0668;
-    private const double LON = 105.9088;
-
-    private TelegramBotClient? _botClient;
-    private int _lastUpdateId = 0;
-
-    // <--- TOKEN CỦA BẠN --->
-    private const string BOT_TOKEN = "BOT_TOKEN_HERE";
+    private DispatcherTimer _weatherTimer = null!;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        _clockTimer.Tick += (s, e) => UpdateTime();
-        _clockTimer.Start();
+        // Load config
+        _config = AppConfig.Load();
 
-        _slideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-        _slideTimer.Tick += (s, e) => ChangeImage();
+        // Initialize services
+        _telegramService = new TelegramService(_config.Telegram);
+        _weatherService = new WeatherService(_config.Location);
+        _slideshowService = new SlideshowService(_config.Slideshow);
 
-        InitTelegram();
+        // Setup Telegram events
+        _telegramService.OnMessageReceived += (message, sender) => ShowToast(message, sender);
+        _telegramService.OnClearMessages += ClearAllMessages;
 
-        LoadImagesFromAutoFolder();
-        UpdateTime();
-        _ = UpdateWeatherAsync();
-
-        var weatherTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(30) };
-        weatherTimer.Tick += async (s, e) => await UpdateWeatherAsync();
-        weatherTimer.Start();
+        InitializeTimers();
+        StartApplication();
     }
 
-    private void InitTelegram()
+    private void InitializeTimers()
     {
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                var bot = new TelegramBotClient(BOT_TOKEN);
-                await bot.DeleteWebhookAsync(); // Fix lỗi webhook
-                _botClient = bot;
+        // Clock timer
+        _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _clockTimer.Tick += (s, e) => UpdateTime();
 
+        // Slideshow timer
+        _slideTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(_config.Slideshow.IntervalSeconds)
+        };
+        _slideTimer.Tick += async (s, e) => await ChangeImageAsync();
+
+        // Weather timer
+        _weatherTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMinutes(_config.Weather.UpdateIntervalMinutes)
+        };
+        _weatherTimer.Tick += async (s, e) => await UpdateWeatherAsync();
+    }
+
+    private async void StartApplication()
+    {
+        // Start clock
+        UpdateTime();
+        _clockTimer.Start();
+
+        // Load and start slideshow
+        _slideshowService.LoadImages();
+        if (_slideshowService.HasImages)
+        {
+            await ChangeImageAsync();
+            _slideTimer.Start();
+        }
+
+        // Initialize Telegram
+        _ = InitializeTelegramAsync();
+
+        // Update weather
+        await UpdateWeatherAsync();
+        _weatherTimer.Start();
+    }
+
+    private async Task InitializeTelegramAsync()
+    {
+        await Task.Run(async () =>
+        {
+            bool success = await _telegramService.InitializeAsync();
+            if (success)
+            {
                 Dispatcher.UIThread.Post(() =>
                 {
-                    _teleTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-                    _teleTimer.Tick += async (s, e) => await CheckTelegramMessages();
+                    _teleTimer = new DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(_config.Telegram.CheckIntervalSeconds)
+                    };
+                    _teleTimer.Tick += async (s, e) => await _telegramService.CheckMessagesAsync();
                     _teleTimer.Start();
                 });
             }
-            catch { Console.WriteLine("Lỗi Telegram (Check Token/Mạng)"); }
         });
     }
 
-    private void LoadImagesFromAutoFolder()
+    private async Task ChangeImageAsync()
     {
-        try
+        var bitmap = await _slideshowService.GetNextImageAsync();
+        if (bitmap != null && BackgroundImage != null)
         {
-            string appPath = AppContext.BaseDirectory;
-            string imagesPath = Path.Combine(appPath, "images");
-            if (!Directory.Exists(imagesPath)) Directory.CreateDirectory(imagesPath);
-
-            var extensions = new[] { ".jpg", ".jpeg", ".png", ".bmp", ".webp" };
-            _imageFiles = Directory.GetFiles(imagesPath)
-                            .Where(f => extensions.Contains(Path.GetExtension(f).ToLower()))
-                            .ToArray();
-
-            if (_imageFiles.Length > 0)
-            {
-                _currentImageIndex = 0;
-                ChangeImage();
-                _slideTimer.Start();
-            }
+            BackgroundImage.Source = bitmap;
         }
-        catch { }
-    }
-
-    private async void ChangeImage()
-    {
-        if (_imageFiles.Length == 0) return;
-        string nextFile = _imageFiles[_currentImageIndex];
-
-        try
-        {
-            var newBitmap = await Task.Run(() =>
-            {
-                using (var image = SixLabors.ImageSharp.Image.Load(nextFile))
-                {
-                    image.Mutate(x => x.AutoOrient());
-                    image.Mutate(x => x.Resize(new ResizeOptions
-                    {
-                        Size = new SixLabors.ImageSharp.Size(1920, 1080),
-                        Mode = ResizeMode.Max
-                    }));
-                    var ms = new MemoryStream();
-                    image.SaveAsBmp(ms);
-                    ms.Position = 0;
-                    return new AvaBitmap(ms);
-                }
-            });
-
-            if (BackgroundImage != null) BackgroundImage.Source = newBitmap;
-            _currentImageIndex = (_currentImageIndex + 1) % _imageFiles.Length;
-        }
-        catch { _currentImageIndex = (_currentImageIndex + 1) % _imageFiles.Length; }
     }
 
     private void UpdateTime()
     {
         if (TxtTime == null) return;
-        try
-        {
-            var now = DateTime.Now;
-            TxtTime.Text = now.ToString("HH:mm");
 
-            var culture = new System.Globalization.CultureInfo("vi-VN");
-            if (TxtDayName != null) TxtDayName.Text = now.ToString("dddd", culture).ToUpper();
-            if (TxtFullDate != null) TxtFullDate.Text = now.ToString("dd.MM.yyyy");
-        }
-        catch { }
+        var now = DateTime.Now;
+        TxtTime.Text = now.ToString("HH:mm");
+
+        var culture = new System.Globalization.CultureInfo("vi-VN");
+        if (TxtDayName != null) TxtDayName.Text = now.ToString("dddd", culture).ToUpper();
+        if (TxtFullDate != null) TxtFullDate.Text = now.ToString("dd.MM.yyyy");
     }
 
     private async Task UpdateWeatherAsync()
     {
-        try
+        var weather = await _weatherService.GetCurrentWeatherAsync();
+        if (weather != null)
         {
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("User-Agent", "PiClockApp/1.0");
-            string url = $"https://api.open-meteo.com/v1/forecast?latitude={LAT}&longitude={LON}&current_weather=true";
-            var json = await client.GetStringAsync(url);
-            var data = JObject.Parse(json);
+            if (TxtTemp != null)
+                TxtTemp.Text = $"{Math.Round(weather.Temperature)}°";
 
-            var current = data["current_weather"];
-            if (current != null && TxtTemp != null)
-            {
-                double temp = current["temperature"]?.Value<double>() ?? 0;
-                int code = current["weathercode"]?.Value<int>() ?? 0;
+            if (TxtWeatherDesc != null)
+                TxtWeatherDesc.Text = WeatherService.GetWeatherDescription(weather.WeatherCode).ToUpper();
 
-                TxtTemp.Text = $"{Math.Round(temp)}°";
-                TxtWeatherDesc.Text = GetWeatherDesc(code).ToUpper();
-                TxtWeatherIcon.Text = GetWeatherIcon(code);
-            }
+            if (TxtWeatherIcon != null)
+                TxtWeatherIcon.Text = WeatherService.GetWeatherIcon(weather.WeatherCode);
         }
-        catch { }
     }
 
-    private async Task CheckTelegramMessages()
+    private void ShowToast(string message, string senderName)
     {
-        if (_botClient == null) return;
-        try
-        {
-            var updates = await _botClient.GetUpdatesAsync(offset: _lastUpdateId + 1, limit: 5);
-            foreach (var update in updates)
-            {
-                _lastUpdateId = update.Id;
-                var msg = update.Message ?? update.ChannelPost;
-                if (msg != null && !string.IsNullOrEmpty(msg.Text))
-                {
-                    string text = msg.Text.Trim();
-                    string sender = msg.Chat.Title ?? msg.Chat.FirstName ?? "Telegram";
-
-                    if (text.Equals("/clear", StringComparison.OrdinalIgnoreCase))
-                    {
-                        ClearAllMessages();
-                    }
-                    else
-                    {
-                        ShowFeedItem(text, sender);
-                    }
-                }
-            }
-        }
-        catch { }
+        Dispatcher.UIThread.Post(() => AddMessageToStack(message, senderName));
     }
 
     private void ClearAllMessages()
@@ -208,110 +154,125 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() =>
         {
             if (MessageStack != null) MessageStack.Children.Clear();
+            Console.WriteLine(">>> ĐÃ XÓA SẠCH TIN NHẮN");
         });
     }
 
-    private void ShowFeedItem(string message, string senderName)
+    private void AddMessageToStack(string message, string senderName)
     {
-        Dispatcher.UIThread.Post(() =>
+        if (MessageStack == null) return;
+
+        var newBubble = CreateMessageControl(message, senderName);
+        MessageStack.Children.Add(newBubble);
+
+        if (MessageStack.Children.Count > _config.Telegram.MaxVisibleMessages)
         {
-            if (MessageStack == null) return;
-
-            var newItem = CreateFeedItem(message, senderName);
-
-            // Thêm vào đầu danh sách (Trên cùng)
-            MessageStack.Children.Insert(0, newItem);
-
-            // LOGIC MỚI: Chỉ giữ 2 tin mới nhất
-            if (MessageStack.Children.Count > 2)
-            {
-                // Xóa tin dưới cùng (cũ nhất)
-                MessageStack.Children.RemoveAt(MessageStack.Children.Count - 1);
-            }
-        });
+            MessageStack.Children.RemoveAt(0);
+        }
     }
 
-    private Control CreateFeedItem(string message, string senderName)
+    private Control CreateMessageControl(string message, string? senderName)
     {
-        // Card Tin Nhắn Lớn
         var border = new Border
         {
-            // Nền đen mờ 80% (không quá tối để đọc chữ dài)
-            Background = new SolidColorBrush(Avalonia.Media.Color.Parse("#CC050505")),
-
-            CornerRadius = new CornerRadius(12),
-            BorderBrush = new SolidColorBrush(Avalonia.Media.Color.Parse("#F97316")), // Viền cam
-            BorderThickness = new Thickness(4, 0, 0, 0), // Vạch cam bên trái
-
-            Padding = new Thickness(24, 20), // Padding rộng
-            Margin = new Thickness(0, 0, 0, 20), // Cách nhau xa
+            Background = new SolidColorBrush(Color.Parse("#CC0f172a")),
+            CornerRadius = new CornerRadius(16),
+            BorderThickness = new Thickness(1.5),
+            Padding = new Thickness(16, 12),
+            Margin = new Thickness(0, 0, 0, 12),
             Opacity = 0
         };
 
-        var transition = new Transitions();
-        transition.Add(new DoubleTransition { Property = Visual.OpacityProperty, Duration = TimeSpan.FromSeconds(0.5) });
+        var borderGradient = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+            GradientStops = new GradientStops
+            {
+                new GradientStop(Color.Parse("#50FFFFFF"), 0.0),
+                new GradientStop(Color.Parse("#00FFFFFF"), 0.5),
+                new GradientStop(Color.Parse("#10FFFFFF"), 1.0)
+            }
+        };
+        border.BorderBrush = borderGradient;
+
+        var transition = new Avalonia.Animation.Transitions();
+        transition.Add(new Avalonia.Animation.DoubleTransition
+        {
+            Property = Visual.OpacityProperty,
+            Duration = TimeSpan.FromSeconds(0.4),
+            Easing = new Avalonia.Animation.Easings.CubicEaseOut()
+        });
         border.Transitions = transition;
 
-        var stack = new StackPanel();
+        var transformGroup = new TransformGroup();
+        var translate = new TranslateTransform(20, 0);
+        transformGroup.Children.Add(translate);
+        border.RenderTransform = transformGroup;
 
-        // Header: Tên + Giờ
-        var headerStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Margin = new Thickness(0, 0, 0, 10) };
+        var grid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("Auto, *")
+        };
+
+        var iconBorder = new Border
+        {
+            Width = 36,
+            Height = 36,
+            CornerRadius = new CornerRadius(18),
+            Background = new SolidColorBrush(Color.Parse("#2038bdf8")),
+            Margin = new Thickness(0, 0, 12, 0),
+            VerticalAlignment = VerticalAlignment.Top
+        };
+
+        var icon = new PathIcon
+        {
+            Data = Geometry.Parse("M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-.135-.461.088-.865.253-1.057l.128-.135c.038-.033.262-.27.525-.53l.366-.363c1.55-1.55 1.488-1.503 1.246-1.566-.242-.063-.64.128-2.636 1.475-.363.246-.922.56-1.07.653-.984.618-2.074.622-2.735.416-.661-.206-1.397-.442-1.397-.442s-.496-.285.344-.613c3.963-1.558 7.21-2.793 9.743-3.705 2.533-.912 3.033-.966 3.32-.966z"),
+            Foreground = new SolidColorBrush(Color.Parse("#38bdf8")),
+            Width = 20,
+            Height = 20,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        iconBorder.Child = icon;
+        Grid.SetColumn(iconBorder, 0);
+
+        var textStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        Grid.SetColumn(textStack, 1);
 
         var nameBlock = new TextBlock
         {
-            Text = senderName.ToUpper(),
-            Foreground = new SolidColorBrush(Avalonia.Media.Color.Parse("#F97316")),
-            FontSize = 24, // Tên to
-            FontWeight = FontWeight.Bold
+            Text = senderName ?? "Telegram",
+            Foreground = new SolidColorBrush(Color.Parse("#94a3b8")),
+            FontSize = 12,
+            FontWeight = FontWeight.Bold,
+            Margin = new Thickness(0, 2, 0, 4)
         };
 
-        var timeBlock = new TextBlock
-        {
-            Text = DateTime.Now.ToString("HH:mm"),
-            Foreground = new SolidColorBrush(Avalonia.Media.Color.Parse("#60FFFFFF")),
-            FontSize = 18,
-            VerticalAlignment = VerticalAlignment.Bottom
-        };
-
-        headerStack.Children.Add(nameBlock);
-        headerStack.Children.Add(timeBlock);
-
-        // Nội dung tin nhắn: CHO PHÉP DÀI
         var msgBlock = new TextBlock
         {
             Text = message,
             Foreground = Brushes.White,
-            FontSize = 28, // Chữ rất to (nhìn rõ từ 5m)
+            FontSize = 15,
             TextWrapping = TextWrapping.Wrap,
-            MaxLines = 12, // Cho phép tối đa 12 dòng (Rất dài)
+            MaxLines = 5,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            LineHeight = 36 // Dãn dòng thoáng
+            LineHeight = 22
         };
 
-        stack.Children.Add(headerStack);
-        stack.Children.Add(msgBlock);
-        border.Child = stack;
+        textStack.Children.Add(nameBlock);
+        textStack.Children.Add(msgBlock);
 
-        Dispatcher.UIThread.Post(() => border.Opacity = 1, DispatcherPriority.Background);
+        grid.Children.Add(iconBorder);
+        grid.Children.Add(textStack);
+        border.Child = grid;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            border.Opacity = 1;
+            translate.X = 0;
+        }, DispatcherPriority.Background);
 
         return border;
-    }
-
-    private string GetWeatherDesc(int code) => code switch
-    {
-        0 => "Trời quang",
-        1 or 2 or 3 => "Có mây",
-        45 or 48 => "Sương mù",
-        >= 51 and <= 67 => "Mưa",
-        >= 95 => "Giông bão",
-        _ => "Không rõ"
-    };
-
-    private string GetWeatherIcon(int code)
-    {
-        if (code == 0) return "☀";
-        if (code <= 3) return "☁";
-        if (code >= 51) return "🌧";
-        return "☁";
     }
 }
