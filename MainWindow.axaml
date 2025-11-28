@@ -17,7 +17,6 @@
         <Style Selector="TextBlock.mono">
             <Setter Property="FontFamily" Value="avares://PiClock/Assets/Fonts#JetBrains Mono" />
         </Style>
-
         <Style Selector="Image.KenBurns">
             <Style.Animations>
                 <Animation Duration="0:0:20" IterationCount="Infinite" PlaybackDirection="Alternate">
@@ -36,10 +35,8 @@
 
     <Grid>
         <Panel ClipToBounds="True">
-            <Image Name="BackgroundImage"
-                Classes="KenBurns"
-                Stretch="UniformToFill"
-                Opacity="1.0"
+            <Image Name="BackgroundImage" Classes="KenBurns"
+                Stretch="UniformToFill" Opacity="1.0"
                 RenderTransformOrigin="50%,50%" />
         </Panel>
 
@@ -53,22 +50,27 @@
             </Border.Background>
         </Border>
 
-        <Grid VerticalAlignment="Bottom" Margin="60,0,60,50" ColumnDefinitions="*, Auto">
+        <Border HorizontalAlignment="Right" Width="650" VerticalAlignment="Stretch">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="100%,0%" EndPoint="0%,0%">
+                    <GradientStop Offset="0.0" Color="#D9000000" />
+                    <GradientStop Offset="0.5" Color="#80000000" />
+                    <GradientStop Offset="1.0" Color="#00000000" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
 
+        <Grid VerticalAlignment="Bottom" Margin="60,0,60,50" ColumnDefinitions="*, Auto">
             <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
                 <StackPanel Orientation="Horizontal" Spacing="20" Margin="5,0,0,-10">
                     <TextBlock Classes="inter" Name="TxtDayName" Text="LOADING"
-                        FontSize="36" FontWeight="ExtraBold"
-                        Foreground="#F97316" LetterSpacing="1" />
+                        FontSize="36" FontWeight="ExtraBold" Foreground="#F97316" LetterSpacing="1" />
                     <Border Width="2" Height="30" Background="#66FFFFFF" VerticalAlignment="Center" />
                     <TextBlock Classes="inter" Name="TxtFullDate" Text="..."
-                        FontSize="36" FontWeight="Regular"
-                        Foreground="#CCFFFFFF" />
+                        FontSize="36" FontWeight="Regular" Foreground="#CCFFFFFF" />
                 </StackPanel>
-
                 <TextBlock Classes="inter" Name="TxtTime" Text="00:00"
-                    FontSize="240" FontWeight="Black"
-                    Foreground="White" LetterSpacing="-10"
+                    FontSize="240" FontWeight="Black" Foreground="White" LetterSpacing="-10"
                     Margin="-15,0,0,0">
                     <TextBlock.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="20" Opacity="0.8" OffsetX="5"
@@ -87,21 +89,27 @@
                         </TextBlock.Effect>
                     </TextBlock>
                     <TextBlock Classes="inter" Name="TxtTemp" Text="--°"
-                        FontSize="110" FontWeight="Bold"
-                        Foreground="White" LetterSpacing="-5" VerticalAlignment="Center" />
+                        FontSize="110" FontWeight="Bold" Foreground="White" LetterSpacing="-5"
+                        VerticalAlignment="Center" />
                 </StackPanel>
                 <TextBlock Classes="inter" Name="TxtWeatherDesc" Text="WAITING..."
-                    FontSize="24" FontWeight="Medium"
-                    Foreground="#CCFFFFFF" HorizontalAlignment="Right"
-                    TextAlignment="Right" Margin="0,5,10,0" />
+                    FontSize="24" FontWeight="Medium" Foreground="#CCFFFFFF"
+                    HorizontalAlignment="Right" />
             </StackPanel>
         </Grid>
 
-        <StackPanel Name="MessageStack"
-            VerticalAlignment="Top" HorizontalAlignment="Right"
-            Margin="0,40,40,0"
-            Spacing="12"
-            MaxWidth="480">
-        </StackPanel>
+        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,40,40,0" Width="600">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right"
+                    Margin="0,0,10,20">
+                    <Ellipse Width="12" Height="12" Fill="#F97316" />
+                    <TextBlock Text="MESSAGES" Classes="mono" Foreground="#CCFFFFFF" FontSize="20"
+                        FontWeight="Bold" LetterSpacing="2" />
+                </StackPanel>
+
+                <StackPanel Name="MessageStack" Spacing="20">
+                </StackPanel>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

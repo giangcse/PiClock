@@ -12,11 +12,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-// ImageSharp
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using AvaBitmap = Avalonia.Media.Imaging.Bitmap;
-// Telegram
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Polling;
@@ -32,36 +30,28 @@ public partial class MainWindow : Window
     private string[] _imageFiles = Array.Empty<string>();
     private int _currentImageIndex = 0;
 
-    // Config vị trí (Vĩnh Long)
     private const double LAT = 10.0668;
     private const double LON = 105.9088;
 
-    // Config Telegram
     private TelegramBotClient? _botClient;
     private int _lastUpdateId = 0;
 
-    // =================================================================
-    // 👇👇👇 HÃY DÁN TOKEN CỦA BẠN VÀO GIỮA 2 DẤU NGOẶC KÉP DƯỚI ĐÂY 👇👇👇
+    // <--- TOKEN CỦA BẠN --->
     private const string BOT_TOKEN = "BOT_TOKEN_HERE";
-    // =================================================================
 
     public MainWindow()
     {
         InitializeComponent();
 
-        // 1. Setup Đồng hồ
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _clockTimer.Tick += (s, e) => UpdateTime();
         _clockTimer.Start();
 
-        // 2. Setup Slideshow
         _slideTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
         _slideTimer.Tick += (s, e) => ChangeImage();
 
-        // 3. Setup Telegram (Đã sửa lỗi Unreachable code)
         InitTelegram();
 
-        // 4. Load ảnh và khởi chạy
         LoadImagesFromAutoFolder();
         UpdateTime();
         _ = UpdateWeatherAsync();
@@ -73,25 +63,14 @@ public partial class MainWindow : Window
 
     private void InitTelegram()
     {
-        // Chạy Async để không block UI lúc khởi động
         _ = Task.Run(async () =>
         {
             try
             {
-                // Khởi tạo Bot
                 var bot = new TelegramBotClient(BOT_TOKEN);
-
-                // Test kết nối thử
-                var me = await bot.GetMeAsync();
-                Console.WriteLine($"✅ TELEGRAM KẾT NỐI THÀNH CÔNG: {me.Username}");
-
-                // Xóa Webhook cũ để đảm bảo nhận tin nhắn
-                await bot.DeleteWebhookAsync();
-
-                // Gán vào biến toàn cục để dùng sau
+                await bot.DeleteWebhookAsync(); // Fix lỗi webhook
                 _botClient = bot;
 
-                // Quay về luồng chính để bật Timer
                 Dispatcher.UIThread.Post(() =>
                 {
                     _teleTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
@@ -99,11 +78,7 @@ public partial class MainWindow : Window
                     _teleTimer.Start();
                 });
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ LỖI TELEGRAM: {ex.Message}");
-                Console.WriteLine("👉 Kiểm tra lại TOKEN. Nếu token đúng, hãy check mạng internet.");
-            }
+            catch { Console.WriteLine("Lỗi Telegram (Check Token/Mạng)"); }
         });
     }
 
@@ -199,52 +174,33 @@ public partial class MainWindow : Window
         catch { }
     }
 
-    // --- TELEGRAM LOGIC ---
     private async Task CheckTelegramMessages()
     {
         if (_botClient == null) return;
         try
         {
-            // Lấy tin nhắn
-            var updates = await _botClient.GetUpdatesAsync(offset: _lastUpdateId + 1, limit: 10);
-
+            var updates = await _botClient.GetUpdatesAsync(offset: _lastUpdateId + 1, limit: 5);
             foreach (var update in updates)
             {
                 _lastUpdateId = update.Id;
-
-                var msg = update.Message ?? update.ChannelPost; // Hỗ trợ cả Group và Channel
-
+                var msg = update.Message ?? update.ChannelPost;
                 if (msg != null && !string.IsNullOrEmpty(msg.Text))
                 {
                     string text = msg.Text.Trim();
                     string sender = msg.Chat.Title ?? msg.Chat.FirstName ?? "Telegram";
 
-                    Console.WriteLine($">>> NHẬN TIN: {text}");
-
-                    // Lệnh xóa
                     if (text.Equals("/clear", StringComparison.OrdinalIgnoreCase))
                     {
                         ClearAllMessages();
                     }
                     else
                     {
-                        ShowToast(text, sender);
+                        ShowFeedItem(text, sender);
                     }
                 }
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine(">>> LỖI CHECK MESSAGE: " + ex.Message);
-        }
-    }
-
-    private void ShowToast(string message, string senderName)
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            AddMessageToStack(message, senderName);
-        });
+        catch { }
     }
 
     private void ClearAllMessages()
@@ -252,138 +208,91 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() =>
         {
             if (MessageStack != null) MessageStack.Children.Clear();
-            Console.WriteLine(">>> ĐÃ XÓA SẠCH TIN NHẮN");
         });
     }
 
-    private void AddMessageToStack(string message, string senderName)
+    private void ShowFeedItem(string message, string senderName)
     {
-        if (MessageStack == null) return;
-
-        var newBubble = CreateMessageControl(message, senderName);
-        MessageStack.Children.Add(newBubble);
-
-        if (MessageStack.Children.Count > 3)
+        Dispatcher.UIThread.Post(() =>
         {
-            MessageStack.Children.RemoveAt(0);
-        }
+            if (MessageStack == null) return;
+
+            var newItem = CreateFeedItem(message, senderName);
+
+            // Thêm vào đầu danh sách (Trên cùng)
+            MessageStack.Children.Insert(0, newItem);
+
+            // LOGIC MỚI: Chỉ giữ 2 tin mới nhất
+            if (MessageStack.Children.Count > 2)
+            {
+                // Xóa tin dưới cùng (cũ nhất)
+                MessageStack.Children.RemoveAt(MessageStack.Children.Count - 1);
+            }
+        });
     }
 
-    // Giao diện Quote (Trích dẫn)
-    private Control CreateMessageControl(string message, string? senderName)
+    private Control CreateFeedItem(string message, string senderName)
     {
-        // 1. Border bao ngoài (Style: Simulated Glass)
+        // Card Tin Nhắn Lớn
         var border = new Border
         {
-            // Nền đen bán trong suốt (Không dùng Blur để nhẹ máy)
-            Background = new SolidColorBrush(Avalonia.Media.Color.Parse("#CC0f172a")), // Màu xanh đen đậm (Slate-900), 80% opacity
+            // Nền đen mờ 80% (không quá tối để đọc chữ dài)
+            Background = new SolidColorBrush(Avalonia.Media.Color.Parse("#CC050505")),
 
-            // Bo góc tròn trịa hiện đại (Apple style)
-            CornerRadius = new CornerRadius(16),
+            CornerRadius = new CornerRadius(12),
+            BorderBrush = new SolidColorBrush(Avalonia.Media.Color.Parse("#F97316")), // Viền cam
+            BorderThickness = new Thickness(4, 0, 0, 0), // Vạch cam bên trái
 
-            // Viền mỏng
-            BorderThickness = new Thickness(1.5),
-
-            Padding = new Thickness(16, 12),
-            Margin = new Thickness(0, 0, 0, 12),
-            Opacity = 0 // Bắt đầu ẩn
+            Padding = new Thickness(24, 20), // Padding rộng
+            Margin = new Thickness(0, 0, 0, 20), // Cách nhau xa
+            Opacity = 0
         };
 
-        // --- KỸ THUẬT GIẢ KÍNH: Tạo viền Gradient phát sáng ---
-        // Viền trên sáng, viền dưới tối -> Tạo cảm giác ánh sáng chiếu vào cạnh kính
-        var borderGradient = new LinearGradientBrush
-        {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
-            GradientStops = new GradientStops
-            {
-                new GradientStop(Avalonia.Media.Color.Parse("#50FFFFFF"), 0.0), // Trắng mờ góc trên trái
-                new GradientStop(Avalonia.Media.Color.Parse("#00FFFFFF"), 0.5), // Trong suốt ở giữa
-                new GradientStop(Avalonia.Media.Color.Parse("#10FFFFFF"), 1.0)  // Hơi sáng nhẹ góc dưới phải
-            }
-        };
-        border.BorderBrush = borderGradient;
-
-        // Animation hiện dần
         var transition = new Transitions();
-        transition.Add(new DoubleTransition { Property = Visual.OpacityProperty, Duration = TimeSpan.FromSeconds(0.4), Easing = new Avalonia.Animation.Easings.CubicEaseOut() });
+        transition.Add(new DoubleTransition { Property = Visual.OpacityProperty, Duration = TimeSpan.FromSeconds(0.5) });
         border.Transitions = transition;
 
-        // Animation trượt nhẹ từ phải sang (Transform)
-        var transformGroup = new TransformGroup();
-        var translate = new TranslateTransform(20, 0); // Dịch sang phải 20px
-        transformGroup.Children.Add(translate);
-        border.RenderTransform = transformGroup;
+        var stack = new StackPanel();
 
+        // Header: Tên + Giờ
+        var headerStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Margin = new Thickness(0, 0, 0, 10) };
 
-        // 2. Cấu trúc nội dung (Grid)
-        var grid = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitions("Auto, *")
-        };
-
-        // Cột 0: Icon Telegram (Trong vòng tròn mờ)
-        var iconBorder = new Border
-        {
-            Width = 36,
-            Height = 36,
-            CornerRadius = new CornerRadius(18), // Hình tròn
-            Background = new SolidColorBrush(Avalonia.Media.Color.Parse("#2038bdf8")), // Xanh dương nhạt nền
-            Margin = new Thickness(0, 0, 12, 0),
-            VerticalAlignment = VerticalAlignment.Top
-        };
-
-        var icon = new Avalonia.Controls.PathIcon
-        {
-            Data = Geometry.Parse("M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-.135-.461.088-.865.253-1.057l.128-.135c.038-.033.262-.27.525-.53l.366-.363c1.55-1.55 1.488-1.503 1.246-1.566-.242-.063-.64.128-2.636 1.475-.363.246-.922.56-1.07.653-.984.618-2.074.622-2.735.416-.661-.206-1.397-.442-1.397-.442s-.496-.285.344-.613c3.963-1.558 7.21-2.793 9.743-3.705 2.533-.912 3.033-.966 3.32-.966z"),
-            Foreground = new SolidColorBrush(Avalonia.Media.Color.Parse("#38bdf8")), // Màu xanh Sky Blue
-            Width = 20,
-            Height = 20,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        iconBorder.Child = icon;
-        Grid.SetColumn(iconBorder, 0);
-
-        // Cột 1: Nội dung
-        var textStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        Grid.SetColumn(textStack, 1);
-
-        // Tên người gửi
         var nameBlock = new TextBlock
         {
-            Text = senderName ?? "Telegram",
-            Foreground = new SolidColorBrush(Avalonia.Media.Color.Parse("#94a3b8")), // Màu xám xanh (Slate-400)
-            FontSize = 12,
-            FontWeight = FontWeight.Bold,
-            Margin = new Thickness(0, 2, 0, 4)
+            Text = senderName.ToUpper(),
+            Foreground = new SolidColorBrush(Avalonia.Media.Color.Parse("#F97316")),
+            FontSize = 24, // Tên to
+            FontWeight = FontWeight.Bold
         };
 
-        // Nội dung tin nhắn
+        var timeBlock = new TextBlock
+        {
+            Text = DateTime.Now.ToString("HH:mm"),
+            Foreground = new SolidColorBrush(Avalonia.Media.Color.Parse("#60FFFFFF")),
+            FontSize = 18,
+            VerticalAlignment = VerticalAlignment.Bottom
+        };
+
+        headerStack.Children.Add(nameBlock);
+        headerStack.Children.Add(timeBlock);
+
+        // Nội dung tin nhắn: CHO PHÉP DÀI
         var msgBlock = new TextBlock
         {
             Text = message,
             Foreground = Brushes.White,
-            FontSize = 15,
+            FontSize = 28, // Chữ rất to (nhìn rõ từ 5m)
             TextWrapping = TextWrapping.Wrap,
-            MaxLines = 5,
+            MaxLines = 12, // Cho phép tối đa 12 dòng (Rất dài)
             TextTrimming = TextTrimming.CharacterEllipsis,
-            LineHeight = 22
+            LineHeight = 36 // Dãn dòng thoáng
         };
 
-        textStack.Children.Add(nameBlock);
-        textStack.Children.Add(msgBlock);
+        stack.Children.Add(headerStack);
+        stack.Children.Add(msgBlock);
+        border.Child = stack;
 
-        grid.Children.Add(iconBorder);
-        grid.Children.Add(textStack);
-        border.Child = grid;
-
-        // Kích hoạt animation (Hiện + Trượt sang trái về vị trí gốc)
-        Dispatcher.UIThread.Post(() =>
-        {
-            border.Opacity = 1;
-            translate.X = 0; // Trượt về 0
-        }, DispatcherPriority.Background);
+        Dispatcher.UIThread.Post(() => border.Opacity = 1, DispatcherPriority.Background);
 
         return border;
     }
