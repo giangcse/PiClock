@@ -1,0 +1,147 @@
+<Window xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
+    x:Class="PiClock.MainWindow"
+    Title="PiClock"
+    WindowState="FullScreen"
+    SystemDecorations="None"
+    Cursor="None"
+    Background="Black">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.h1">
+            <Setter Property="FontFamily" Value="avares://PiClock/Assets/Fonts#Inter" />
+            <Setter Property="FontWeight" Value="Black" />
+        </Style>
+        <Style Selector="TextBlock.body">
+            <Setter Property="FontFamily" Value="avares://PiClock/Assets/Fonts#Inter" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style Selector="TextBlock.mono">
+            <Setter Property="FontFamily" Value="avares://PiClock/Assets/Fonts#JetBrains Mono" />
+        </Style>
+
+        <Style Selector="Image.KenBurns">
+            <Style.Animations>
+                <Animation Duration="0:0:20" IterationCount="Infinite" PlaybackDirection="Alternate">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1.0" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1.0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1.1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1.1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </Window.Styles>
+
+    <Grid>
+        <Panel ClipToBounds="True">
+            <Image Name="BackgroundImage"
+                Classes="KenBurns"
+                Stretch="UniformToFill"
+                Opacity="1.0"
+                RenderTransformOrigin="50%,50%">
+                <Image.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.8"
+                            Easing="QuadraticEaseInOut" />
+                    </Transitions>
+                </Image.Transitions>
+            </Image>
+        </Panel>
+
+        <Border VerticalAlignment="Bottom" Height="600">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+                    <GradientStop Offset="0.0" Color="#00000000" />
+                    <GradientStop Offset="0.2" Color="#40000000" />
+                    <GradientStop Offset="0.6" Color="#B3000000" />
+                    <GradientStop Offset="1.0" Color="#F2000000" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Grid VerticalAlignment="Bottom" Margin="50,0,50,30">
+            <StackPanel>
+
+                <Grid ColumnDefinitions="*, Auto" Margin="10,0,10,15">
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="30"
+                        VerticalAlignment="Bottom">
+                        <Border BorderBrush="#FFD700" BorderThickness="8,0,0,0" Height="65"
+                            CornerRadius="4" />
+
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Classes="body" Name="TxtDayName" Text="LOADING" FontSize="48"
+                                Foreground="White">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.8"
+                                        OffsetX="2" OffsetY="2" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock Classes="mono" Name="TxtFullDate" Text="..." FontSize="26"
+                                Foreground="#D9FFFFFF" Margin="0,5,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="20" Margin="50,0,0,0">
+                            <TextBlock Name="TxtWeatherIcon" Text="☁" FontSize="65"
+                                Foreground="#FFD700" VerticalAlignment="Center">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="15" Opacity="0.5"
+                                        OffsetX="2" OffsetY="2" />
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Classes="body" Name="TxtTemp" Text="--°" FontSize="52"
+                                    Foreground="White" />
+                                <TextBlock Classes="mono" Name="TxtWeatherDesc" Text="WAITING..."
+                                    FontSize="20" Foreground="#D9FFFFFF" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Orientation="Horizontal"
+                        Margin="0,0,0,10">
+                        <Border Background="#33FFFFFF" CornerRadius="20" Padding="15,8">
+                            <StackPanel Orientation="Horizontal" Spacing="10"
+                                VerticalAlignment="Center">
+                                <Ellipse Width="10" Height="10" Fill="#00FF00" />
+                                <TextBlock Classes="mono" Text="LIVE" Foreground="White"
+                                    FontSize="14" FontWeight="Bold" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="-15" HorizontalAlignment="Center">
+                    <TextBlock Classes="h1" Name="TxtHour" Text="00" FontSize="360"
+                        Foreground="White" LetterSpacing="-15"
+                        LineHeight="310" Margin="0,20,0,0">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="Black" BlurRadius="40" Opacity="0.8"
+                                OffsetX="0" OffsetY="10" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+
+                    <TextBlock Classes="h1" Text=":" FontSize="300" Foreground="#80FFFFFF"
+                        Margin="15,0,15,40" VerticalAlignment="Center" />
+
+                    <TextBlock Classes="h1" Name="TxtMinute" Text="00" FontSize="360"
+                        Foreground="White" LetterSpacing="-15"
+                        LineHeight="310" Margin="0,20,0,0">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="Black" BlurRadius="40" Opacity="0.8"
+                                OffsetX="0" OffsetY="10" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </StackPanel>
+
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
