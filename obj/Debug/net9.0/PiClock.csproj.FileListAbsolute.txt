@@ -78,3 +78,4 @@ D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.pdb
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.genruntimeconfig.cache
 D:\Linhtinh\PiClock\obj\Debug\net9.0\ref\PiClock.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\SixLabors.ImageSharp.dll
+D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.sourcelink.json
