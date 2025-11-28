@@ -79,35 +79,49 @@ public partial class MainWindow : Window
     {
         if (_imageFiles.Length == 0) return;
 
-        // Fade Out
-        BackgroundImage.Opacity = 0; 
-        await Task.Delay(800); 
+        // Lưu lại index file cần load
+        string nextFile = _imageFiles[_currentImageIndex];
 
         try
         {
-            string currentFile = _imageFiles[_currentImageIndex];
-            using (var image = SixLabors.ImageSharp.Image.Load(currentFile))
+            // 1. TẢI VÀ XỬ LÝ ẢNH Ở "HẬU TRƯỜNG" (Background Thread)
+            // Việc này chạy ngầm, không ảnh hưởng gì đến ảnh đang hiển thị
+            var newBitmap = await Task.Run(() =>
             {
-                image.Mutate(x => x.AutoOrient());
-                image.Mutate(x => x.Resize(new ResizeOptions 
+                using (var image = SixLabors.ImageSharp.Image.Load(nextFile))
                 {
-                    Size = new SixLabors.ImageSharp.Size(1920, 1080),
-                    Mode = ResizeMode.Max 
-                }));
+                    image.Mutate(x => x.AutoOrient());
 
-                using (var memoryStream = new MemoryStream())
-                {
+                    // Resize về FullHD
+                    image.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                        Size = new SixLabors.ImageSharp.Size(1920, 1080),
+                        Mode = ResizeMode.Max
+                    }));
+
+                    var memoryStream = new MemoryStream();
                     image.SaveAsBmp(memoryStream);
                     memoryStream.Position = 0;
-                    BackgroundImage.Source = new AvaBitmap(memoryStream);
+
+                    // Tạo Bitmap của Avalonia từ luồng dữ liệu này
+                    return new AvaBitmap(memoryStream);
                 }
-            }
+            });
+
+            // 2. THAY THẾ TỨC THÌ (Main Thread)
+            // Chỉ khi nào bước 1 xong, dòng này mới chạy.
+            // Việc thay ảnh diễn ra trong 1 tích tắc -> Không có màn hình đen.
+            BackgroundImage.Source = newBitmap;
+
+            // Tăng index cho lần sau
             _currentImageIndex = (_currentImageIndex + 1) % _imageFiles.Length;
         }
-        catch { _currentImageIndex = (_currentImageIndex + 1) % _imageFiles.Length; }
-
-        // Fade In
-        BackgroundImage.Opacity = 1; 
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Lỗi load ảnh {nextFile}: {ex.Message}");
+            // Nếu file lỗi, nhảy sang file kế tiếp ngay
+            _currentImageIndex = (_currentImageIndex + 1) % _imageFiles.Length;
+        }
     }
 
     private void UpdateTime()

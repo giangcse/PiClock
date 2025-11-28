@@ -15,14 +15,14 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = PiClock
-build_property.ProjectDir = D:\Linhtinh\PiClock\
+build_property.ProjectDir = d:\Linhtinh\PiClock\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
-[D:/Linhtinh/PiClock/App.axaml]
+[d:/Linhtinh/PiClock/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[D:/Linhtinh/PiClock/MainWindow.axaml]
+[d:/Linhtinh/PiClock/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

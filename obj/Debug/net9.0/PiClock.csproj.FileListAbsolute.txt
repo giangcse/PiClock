@@ -33,6 +33,7 @@ D:\Linhtinh\PiClock\bin\Debug\net9.0\HarfBuzzSharp.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\MicroCom.Runtime.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\Newtonsoft.Json.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\ReactiveUI.dll
+D:\Linhtinh\PiClock\bin\Debug\net9.0\SixLabors.ImageSharp.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\SkiaSharp.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\Splat.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\System.Reactive.dll
@@ -71,11 +72,10 @@ D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.GeneratedMSBuildEditorConfig.editor
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.AssemblyInfoInputs.cache
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.AssemblyInfo.cs
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.csproj.CoreCompileInputs.cache
+D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.sourcelink.json
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.csproj.Up2Date
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.dll
 D:\Linhtinh\PiClock\obj\Debug\net9.0\refint\PiClock.dll
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.pdb
 D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.genruntimeconfig.cache
 D:\Linhtinh\PiClock\obj\Debug\net9.0\ref\PiClock.dll
-D:\Linhtinh\PiClock\bin\Debug\net9.0\SixLabors.ImageSharp.dll
-D:\Linhtinh\PiClock\obj\Debug\net9.0\PiClock.sourcelink.json

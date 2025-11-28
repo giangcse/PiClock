@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Y0oKJfvQBs8=",
+  "dgSpecHash": "m0sJ7HJQIt0=",
   "success": true,
   "projectFilePath": "D:\\Linhtinh\\PiClock\\PiClock.csproj",
   "expectedPackageFiles": [
@@ -39,7 +39,10 @@
     "C:\\Users\\lusap\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512",
     "C:\\Users\\lusap\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
     "C:\\Users\\lusap\\.nuget\\packages\\system.reactive\\6.0.1\\system.reactive.6.0.1.nupkg.sha512",
-    "C:\\Users\\lusap\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512"
+    "C:\\Users\\lusap\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512",
+    "C:\\Users\\lusap\\.nuget\\packages\\microsoft.netcore.app.runtime.linux-arm64\\9.0.8\\microsoft.netcore.app.runtime.linux-arm64.9.0.8.nupkg.sha512",
+    "C:\\Users\\lusap\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.linux-arm64\\9.0.8\\microsoft.aspnetcore.app.runtime.linux-arm64.9.0.8.nupkg.sha512",
+    "C:\\Users\\lusap\\.nuget\\packages\\microsoft.netcore.app.host.linux-arm64\\9.0.8\\microsoft.netcore.app.host.linux-arm64.9.0.8.nupkg.sha512"
   ],
   "logs": []
 }

@@ -30,6 +30,7 @@ D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\HarfBuzzSharp.dll
 D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\MicroCom.Runtime.dll
 D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\Newtonsoft.Json.dll
 D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\ReactiveUI.dll
+D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\SixLabors.ImageSharp.dll
 D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\SkiaSharp.dll
 D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\Splat.dll
 D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\System.Reactive.dll
@@ -227,10 +228,10 @@ D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.GeneratedMSBuildEdito
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.AssemblyInfoInputs.cache
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.AssemblyInfo.cs
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.csproj.CoreCompileInputs.cache
+D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.sourcelink.json
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.csproj.Up2Date
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.dll
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\refint\PiClock.dll
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.pdb
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\PiClock.genruntimeconfig.cache
 D:\Linhtinh\PiClock\obj\Release\net9.0\linux-arm64\ref\PiClock.dll
-D:\Linhtinh\PiClock\bin\Release\net9.0\linux-arm64\SixLabors.ImageSharp.dll

@@ -41,11 +41,6 @@
                    Stretch="UniformToFill" 
                    Opacity="1.0"
                    RenderTransformOrigin="50%,50%">
-                <Image.Transitions>
-                    <Transitions>
-                        <DoubleTransition Property="Opacity" Duration="0:0:0.8" Easing="QuadraticEaseInOut"/>
-                    </Transitions>
-                </Image.Transitions>
             </Image>
         </Panel>
 
