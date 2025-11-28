@@ -37,6 +37,7 @@ D:\Linhtinh\PiClock\bin\Debug\net9.0\SixLabors.ImageSharp.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\SkiaSharp.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\Splat.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\System.Reactive.dll
+D:\Linhtinh\PiClock\bin\Debug\net9.0\Telegram.Bot.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\Tmds.DBus.Protocol.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\runtimes\win-arm64\native\av_libglesv2.dll
 D:\Linhtinh\PiClock\bin\Debug\net9.0\runtimes\win-x64\native\av_libglesv2.dll
