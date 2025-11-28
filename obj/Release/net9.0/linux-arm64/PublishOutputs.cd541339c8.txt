@@ -217,6 +217,7 @@ D:\Linhtinh\PiClock\publish-pi\SixLabors.ImageSharp.dll
 D:\Linhtinh\PiClock\publish-pi\SkiaSharp.dll
 D:\Linhtinh\PiClock\publish-pi\Splat.dll
 D:\Linhtinh\PiClock\publish-pi\System.Reactive.dll
+D:\Linhtinh\PiClock\publish-pi\Telegram.Bot.dll
 D:\Linhtinh\PiClock\publish-pi\Tmds.DBus.Protocol.dll
 D:\Linhtinh\PiClock\publish-pi\libHarfBuzzSharp.so
 D:\Linhtinh\PiClock\publish-pi\libSkiaSharp.so

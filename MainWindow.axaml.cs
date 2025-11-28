@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private DispatcherTimer _slideTimer = null!;
     private DispatcherTimer? _teleTimer;
     private DispatcherTimer _weatherTimer = null!;
+    private int _lastHour = -1; // Track hour for gradient update
 
     public MainWindow()
     {
@@ -127,6 +128,84 @@ public partial class MainWindow : Window
         var culture = new System.Globalization.CultureInfo("vi-VN");
         if (TxtDayName != null) TxtDayName.Text = now.ToString("dddd", culture).ToUpper();
         if (TxtFullDate != null) TxtFullDate.Text = now.ToString("dd.MM.yyyy");
+
+        // Update lunar date
+        if (TxtLunarDate != null)
+        {
+            TxtLunarDate.Text = LunarCalendarService.GetLunarDateShort(now);
+        }
+
+        // Update gradient every hour
+        if (now.Hour != _lastHour)
+        {
+            _lastHour = now.Hour;
+            UpdateTimeGradient(now.Hour);
+        }
+    }
+
+    private void UpdateTimeGradient(int hour)
+    {
+        if (TimeGradientOverlay == null) return;
+
+        Color startColor, endColor;
+        double opacity;
+
+        if (hour >= 5 && hour < 7) // Bình minh (5h - 7h)
+        {
+            startColor = Color.Parse("#FF6B35"); // Cam đỏ
+            endColor = Color.Parse("#F7C59F");   // Vàng nhạt
+            opacity = 0.25;
+        }
+        else if (hour >= 7 && hour < 11) // Sáng (7h - 11h)
+        {
+            startColor = Color.Parse("#87CEEB"); // Xanh da trời
+            endColor = Color.Parse("#E0F6FF");   // Xanh nhạt
+            opacity = 0.15;
+        }
+        else if (hour >= 11 && hour < 14) // Trưa (11h - 14h)
+        {
+            startColor = Color.Parse("#FFD700"); // Vàng đậm
+            endColor = Color.Parse("#FFA500");   // Cam
+            opacity = 0.2;
+        }
+        else if (hour >= 14 && hour < 17) // Chiều (14h - 17h)
+        {
+            startColor = Color.Parse("#87CEEB"); // Xanh da trời
+            endColor = Color.Parse("#F0E68C");   // Vàng nhạt
+            opacity = 0.15;
+        }
+        else if (hour >= 17 && hour < 19) // Hoàng hôn (17h - 19h)
+        {
+            startColor = Color.Parse("#FF4500"); // Cam đỏ
+            endColor = Color.Parse("#8B008B");   // Tím đậm
+            opacity = 0.3;
+        }
+        else if (hour >= 19 && hour < 22) // Tối (19h - 22h)
+        {
+            startColor = Color.Parse("#191970"); // Xanh đêm
+            endColor = Color.Parse("#483D8B");   // Tím đậm
+            opacity = 0.35;
+        }
+        else // Đêm khuya (22h - 5h)
+        {
+            startColor = Color.Parse("#0D0D1A"); // Đen xanh
+            endColor = Color.Parse("#1a1a2e");   // Xanh đêm
+            opacity = 0.4;
+        }
+
+        var gradient = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+            GradientStops = new GradientStops
+            {
+                new GradientStop(startColor, 0.0),
+                new GradientStop(endColor, 1.0)
+            }
+        };
+
+        TimeGradientOverlay.Background = gradient;
+        TimeGradientOverlay.Opacity = opacity;
     }
 
     private async Task UpdateWeatherAsync()
@@ -181,101 +260,77 @@ public partial class MainWindow : Window
 
     private Control CreateMessageControl(string message, string? senderName)
     {
+        // Load Inter font
+        var interFont = new FontFamily("avares://PiClock/Assets/Fonts#Inter");
+
         var border = new Border
         {
-            Background = new SolidColorBrush(Color.Parse("#E00f172a")),
-            CornerRadius = new CornerRadius(20),
-            BorderThickness = new Thickness(2),
-            Padding = new Thickness(24, 20),
+            Background = new SolidColorBrush(Color.Parse("#CC000000")),
+            CornerRadius = new CornerRadius(16),
+            BorderThickness = new Thickness(0),
+            Padding = new Thickness(20, 16),
             Margin = new Thickness(0, 0, 0, 0),
             Opacity = 0
         };
 
-        var borderGradient = new LinearGradientBrush
+        // Add drop shadow effect like other elements
+        border.Effect = new Avalonia.Media.DropShadowEffect
         {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
-            GradientStops = new GradientStops
-            {
-                new GradientStop(Color.Parse("#60FFFFFF"), 0.0),
-                new GradientStop(Color.Parse("#00FFFFFF"), 0.5),
-                new GradientStop(Color.Parse("#20FFFFFF"), 1.0)
-            }
+            Color = Colors.Black,
+            BlurRadius = 15,
+            Opacity = 0.6,
+            OffsetX = 0,
+            OffsetY = 4
         };
-        border.BorderBrush = borderGradient;
 
         var transition = new Avalonia.Animation.Transitions();
         transition.Add(new Avalonia.Animation.DoubleTransition
         {
             Property = Visual.OpacityProperty,
-            Duration = TimeSpan.FromSeconds(0.5),
+            Duration = TimeSpan.FromSeconds(0.4),
             Easing = new Avalonia.Animation.Easings.CubicEaseOut()
         });
         transition.Add(new Avalonia.Animation.TransformOperationsTransition
         {
             Property = Border.RenderTransformProperty,
-            Duration = TimeSpan.FromSeconds(0.5),
+            Duration = TimeSpan.FromSeconds(0.4),
             Easing = new Avalonia.Animation.Easings.CubicEaseOut()
         });
         border.Transitions = transition;
         border.RenderTransform = TransformOperations.Parse("translateX(30px)");
 
-        var grid = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitions("Auto, *")
-        };
-
-        var iconBorder = new Border
-        {
-            Width = 56,
-            Height = 56,
-            CornerRadius = new CornerRadius(28),
-            Background = new SolidColorBrush(Color.Parse("#3038bdf8")),
-            Margin = new Thickness(0, 0, 18, 0),
-            VerticalAlignment = VerticalAlignment.Top
-        };
-
-        var icon = new PathIcon
-        {
-            Data = Geometry.Parse("M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-.135-.461.088-.865.253-1.057l.128-.135c.038-.033.262-.27.525-.53l.366-.363c1.55-1.55 1.488-1.503 1.246-1.566-.242-.063-.64.128-2.636 1.475-.363.246-.922.56-1.07.653-.984.618-2.074.622-2.735.416-.661-.206-1.397-.442-1.397-.442s-.496-.285.344-.613c3.963-1.558 7.21-2.793 9.743-3.705 2.533-.912 3.033-.966 3.32-.966z"),
-            Foreground = new SolidColorBrush(Color.Parse("#38bdf8")),
-            Width = 30,
-            Height = 30,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        iconBorder.Child = icon;
-        Grid.SetColumn(iconBorder, 0);
-
         var textStack = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
-        Grid.SetColumn(textStack, 1);
 
+        // Sender name with orange color like day name
         var nameBlock = new TextBlock
         {
-            Text = senderName ?? "Telegram",
-            Foreground = new SolidColorBrush(Color.Parse("#38bdf8")),
-            FontSize = 18,
-            FontWeight = FontWeight.Bold,
+            Text = (senderName ?? "Telegram").ToUpper(),
+            FontFamily = interFont,
+            Foreground = new SolidColorBrush(Color.Parse("#F97316")), // Orange like TxtDayName
+            FontSize = 20,
+            FontWeight = FontWeight.ExtraBold,
+            LetterSpacing = 1,
             Margin = new Thickness(0, 0, 0, 8)
         };
 
+        // Message with white color
         var msgBlock = new TextBlock
         {
             Text = message,
-            Foreground = Brushes.White,
-            FontSize = 22,
+            FontFamily = interFont,
+            Foreground = new SolidColorBrush(Color.Parse("#FFFFFF")),
+            FontSize = 24,
+            FontWeight = FontWeight.Regular,
             TextWrapping = TextWrapping.Wrap,
-            MaxLines = 8,
+            MaxLines = 6,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            LineHeight = 32
+            LineHeight = 34
         };
 
         textStack.Children.Add(nameBlock);
         textStack.Children.Add(msgBlock);
 
-        grid.Children.Add(iconBorder);
-        grid.Children.Add(textStack);
-        border.Child = grid;
+        border.Child = textStack;
 
         // Delay the animation slightly to ensure the element is rendered first
         _ = Dispatcher.UIThread.InvokeAsync(async () =>

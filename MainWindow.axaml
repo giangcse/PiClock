@@ -40,22 +40,23 @@
                 RenderTransformOrigin="50%,50%" />
         </Panel>
 
+        <!-- Dynamic gradient overlay based on time of day -->
+        <Border Name="TimeGradientOverlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+            Opacity="0.3">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0.0" Color="#1a1a2e" />
+                    <GradientStop Offset="1.0" Color="#16213e" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
         <Border VerticalAlignment="Bottom" Height="380">
             <Border.Background>
                 <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
                     <GradientStop Offset="0.0" Color="#00000000" />
                     <GradientStop Offset="0.4" Color="#99000000" />
                     <GradientStop Offset="1.0" Color="#F2000000" />
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
-
-        <Border HorizontalAlignment="Right" Width="650" VerticalAlignment="Stretch">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="100%,0%" EndPoint="0%,0%">
-                    <GradientStop Offset="0.0" Color="#D9000000" />
-                    <GradientStop Offset="0.5" Color="#80000000" />
-                    <GradientStop Offset="1.0" Color="#00000000" />
                 </LinearGradientBrush>
             </Border.Background>
         </Border>
@@ -68,13 +69,16 @@
                     <Border Width="2" Height="30" Background="#66FFFFFF" VerticalAlignment="Center" />
                     <TextBlock Classes="inter" Name="TxtFullDate" Text="..."
                         FontSize="36" FontWeight="Regular" Foreground="#CCFFFFFF" />
+                    <Border Width="2" Height="30" Background="#66FFFFFF" VerticalAlignment="Center" />
+                    <TextBlock Classes="inter" Name="TxtLunarDate" Text=""
+                        FontSize="36" FontWeight="Regular" Foreground="#FBBF24" />
                 </StackPanel>
                 <TextBlock Classes="inter" Name="TxtTime" Text="00:00"
-                    FontSize="240" FontWeight="Black" Foreground="White" LetterSpacing="-10"
-                    Margin="-15,0,0,0">
+                    FontSize="280" FontWeight="Black" Foreground="White" LetterSpacing="-12"
+                    Margin="-18,0,0,0">
                     <TextBlock.Effect>
-                        <DropShadowEffect Color="Black" BlurRadius="20" Opacity="0.8" OffsetX="5"
-                            OffsetY="5" />
+                        <DropShadowEffect Color="Black" BlurRadius="25" Opacity="0.8" OffsetX="6"
+                            OffsetY="6" />
                     </TextBlock.Effect>
                 </TextBlock>
             </StackPanel>

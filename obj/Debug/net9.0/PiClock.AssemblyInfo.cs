@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PiClock")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+89981e8cf49042137c4864b8d83ee9a75c3bb140")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+daee5d5402a22244e425ad8417a5ac19c78ba271")]
 [assembly: System.Reflection.AssemblyProductAttribute("PiClock")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PiClock")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
