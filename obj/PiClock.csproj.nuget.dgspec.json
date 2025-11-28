@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Linhtinh\\PiClock\\PiClock.csproj": {}
+    "d:\\Linhtinh\\PiClock\\PiClock.csproj": {}
   },
   "projects": {
-    "D:\\Linhtinh\\PiClock\\PiClock.csproj": {
+    "d:\\Linhtinh\\PiClock\\PiClock.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Linhtinh\\PiClock\\PiClock.csproj",
+        "projectUniqueName": "d:\\Linhtinh\\PiClock\\PiClock.csproj",
         "projectName": "PiClock",
-        "projectPath": "D:\\Linhtinh\\PiClock\\PiClock.csproj",
+        "projectPath": "d:\\Linhtinh\\PiClock\\PiClock.csproj",
         "packagesPath": "C:\\Users\\lusap\\.nuget\\packages\\",
-        "outputPath": "D:\\Linhtinh\\PiClock\\obj\\",
+        "outputPath": "d:\\Linhtinh\\PiClock\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -7,7 +7,7 @@
   "Telegram": {
     "BotToken": "BOT_TOKEN_HERE",
     "CheckIntervalSeconds": 5,
-    "MaxVisibleMessages": 3
+    "MaxVisibleMessages": 2
   },
   "Slideshow": {
     "IntervalSeconds": 10,
