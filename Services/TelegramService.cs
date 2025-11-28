@@ -53,6 +53,7 @@ public class TelegramService
         try
         {
             var updates = await _botClient.GetUpdatesAsync(offset: _lastUpdateId + 1, limit: 10);
+            Console.WriteLine($">>> Telegram: Received {updates.Length} updates");
 
             foreach (var update in updates)
             {
@@ -63,6 +64,7 @@ public class TelegramService
                 {
                     string text = msg.Text.Trim();
                     string sender = msg.Chat.Title ?? msg.Chat.FirstName ?? "Telegram";
+                    Console.WriteLine($">>> Telegram Message: [{sender}]: {text}");
 
                     if (text.Equals("/clear", StringComparison.OrdinalIgnoreCase))
                     {

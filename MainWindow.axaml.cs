@@ -3,6 +3,7 @@ using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Transformation;
 using Avalonia.Threading;
 using Avalonia.Layout;
 using System;
@@ -146,7 +147,8 @@ public partial class MainWindow : Window
 
     private void ShowToast(string message, string senderName)
     {
-        Dispatcher.UIThread.Post(() => AddMessageToStack(message, senderName));
+        Console.WriteLine($">>> SHOW TOAST: {senderName}: {message}");
+        Dispatcher.UIThread.InvokeAsync(() => AddMessageToStack(message, senderName));
     }
 
     private void ClearAllMessages()
@@ -160,10 +162,16 @@ public partial class MainWindow : Window
 
     private void AddMessageToStack(string message, string senderName)
     {
-        if (MessageStack == null) return;
+        Console.WriteLine($">>> ADD MESSAGE TO STACK: {message}");
+        if (MessageStack == null)
+        {
+            Console.WriteLine(">>> MessageStack is NULL!");
+            return;
+        }
 
         var newBubble = CreateMessageControl(message, senderName);
         MessageStack.Children.Add(newBubble);
+        Console.WriteLine($">>> MessageStack now has {MessageStack.Children.Count} children");
 
         if (MessageStack.Children.Count > _config.Telegram.MaxVisibleMessages)
         {
@@ -203,12 +211,14 @@ public partial class MainWindow : Window
             Duration = TimeSpan.FromSeconds(0.4),
             Easing = new Avalonia.Animation.Easings.CubicEaseOut()
         });
+        transition.Add(new Avalonia.Animation.TransformOperationsTransition
+        {
+            Property = Border.RenderTransformProperty,
+            Duration = TimeSpan.FromSeconds(0.4),
+            Easing = new Avalonia.Animation.Easings.CubicEaseOut()
+        });
         border.Transitions = transition;
-
-        var transformGroup = new TransformGroup();
-        var translate = new TranslateTransform(20, 0);
-        transformGroup.Children.Add(translate);
-        border.RenderTransform = transformGroup;
+        border.RenderTransform = TransformOperations.Parse("translateX(20px)");
 
         var grid = new Grid
         {
@@ -267,10 +277,12 @@ public partial class MainWindow : Window
         grid.Children.Add(textStack);
         border.Child = grid;
 
-        Dispatcher.UIThread.Post(() =>
+        // Delay the animation slightly to ensure the element is rendered first
+        _ = Dispatcher.UIThread.InvokeAsync(async () =>
         {
+            await Task.Delay(50); // Small delay to ensure layout is complete
             border.Opacity = 1;
-            translate.X = 0;
+            border.RenderTransform = TransformOperations.Parse("translateX(0px)");
         }, DispatcherPriority.Background);
 
         return border;
