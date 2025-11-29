@@ -40,17 +40,6 @@
                 RenderTransformOrigin="50%,50%" />
         </Panel>
 
-        <!-- Dynamic gradient overlay based on time of day -->
-        <Border Name="TimeGradientOverlay" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-            Opacity="0.3">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                    <GradientStop Offset="0.0" Color="#1a1a2e" />
-                    <GradientStop Offset="1.0" Color="#16213e" />
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
-
         <Border VerticalAlignment="Bottom" Height="380">
             <Border.Background>
                 <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
@@ -65,17 +54,17 @@
             <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
                 <StackPanel Orientation="Horizontal" Spacing="20" Margin="5,0,0,-10">
                     <TextBlock Classes="inter" Name="TxtDayName" Text="LOADING"
-                        FontSize="36" FontWeight="ExtraBold" Foreground="#F97316" LetterSpacing="1" />
-                    <Border Width="2" Height="30" Background="#66FFFFFF" VerticalAlignment="Center" />
+                        FontSize="40" FontWeight="ExtraBold" Foreground="#F97316" LetterSpacing="1" />
+                    <Border Width="2" Height="33" Background="#66FFFFFF" VerticalAlignment="Center" />
                     <TextBlock Classes="inter" Name="TxtFullDate" Text="..."
-                        FontSize="36" FontWeight="Regular" Foreground="#CCFFFFFF" />
-                    <Border Width="2" Height="30" Background="#66FFFFFF" VerticalAlignment="Center" />
+                        FontSize="40" FontWeight="Regular" Foreground="#CCFFFFFF" />
+                    <Border Width="2" Height="33" Background="#66FFFFFF" VerticalAlignment="Center" />
                     <TextBlock Classes="inter" Name="TxtLunarDate" Text=""
-                        FontSize="36" FontWeight="Regular" Foreground="#FBBF24" />
+                        FontSize="40" FontWeight="Regular" Foreground="#FBBF24" />
                 </StackPanel>
                 <TextBlock Classes="inter" Name="TxtTime" Text="00:00"
-                    FontSize="280" FontWeight="Black" Foreground="White" LetterSpacing="-12"
-                    Margin="-18,0,0,0">
+                    FontSize="308" FontWeight="Black" Foreground="White" LetterSpacing="-13"
+                    Margin="-20,0,0,0">
                     <TextBlock.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="25" Opacity="0.8" OffsetX="6"
                             OffsetY="6" />
@@ -85,19 +74,19 @@
 
             <StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                 Margin="0,0,0,30">
-                <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Right">
-                    <TextBlock Name="TxtWeatherIcon" Text="☁" FontSize="90" Foreground="White"
+                <StackPanel Orientation="Horizontal" Spacing="22" HorizontalAlignment="Right">
+                    <TextBlock Name="TxtWeatherIcon" Text="☁" FontSize="99" Foreground="White"
                         VerticalAlignment="Center">
                         <TextBlock.Effect>
-                            <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.5" />
+                            <DropShadowEffect Color="Black" BlurRadius="11" Opacity="0.5" />
                         </TextBlock.Effect>
                     </TextBlock>
                     <TextBlock Classes="inter" Name="TxtTemp" Text="--°"
-                        FontSize="110" FontWeight="Bold" Foreground="White" LetterSpacing="-5"
+                        FontSize="121" FontWeight="Bold" Foreground="White" LetterSpacing="-5"
                         VerticalAlignment="Center" />
                 </StackPanel>
                 <TextBlock Classes="inter" Name="TxtWeatherDesc" Text="WAITING..."
-                    FontSize="24" FontWeight="Medium" Foreground="#CCFFFFFF"
+                    FontSize="26" FontWeight="Medium" Foreground="#CCFFFFFF"
                     HorizontalAlignment="Right" />
             </StackPanel>
         </Grid>

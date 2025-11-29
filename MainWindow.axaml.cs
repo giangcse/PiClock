@@ -24,7 +24,6 @@ public partial class MainWindow : Window
     private DispatcherTimer _slideTimer = null!;
     private DispatcherTimer? _teleTimer;
     private DispatcherTimer _weatherTimer = null!;
-    private int _lastHour = -1; // Track hour for gradient update
 
     public MainWindow()
     {
@@ -134,78 +133,6 @@ public partial class MainWindow : Window
         {
             TxtLunarDate.Text = LunarCalendarService.GetLunarDateShort(now);
         }
-
-        // Update gradient every hour
-        if (now.Hour != _lastHour)
-        {
-            _lastHour = now.Hour;
-            UpdateTimeGradient(now.Hour);
-        }
-    }
-
-    private void UpdateTimeGradient(int hour)
-    {
-        if (TimeGradientOverlay == null) return;
-
-        Color startColor, endColor;
-        double opacity;
-
-        if (hour >= 5 && hour < 7) // Bình minh (5h - 7h)
-        {
-            startColor = Color.Parse("#FF6B35"); // Cam đỏ
-            endColor = Color.Parse("#F7C59F");   // Vàng nhạt
-            opacity = 0.25;
-        }
-        else if (hour >= 7 && hour < 11) // Sáng (7h - 11h)
-        {
-            startColor = Color.Parse("#87CEEB"); // Xanh da trời
-            endColor = Color.Parse("#E0F6FF");   // Xanh nhạt
-            opacity = 0.15;
-        }
-        else if (hour >= 11 && hour < 14) // Trưa (11h - 14h)
-        {
-            startColor = Color.Parse("#FFD700"); // Vàng đậm
-            endColor = Color.Parse("#FFA500");   // Cam
-            opacity = 0.2;
-        }
-        else if (hour >= 14 && hour < 17) // Chiều (14h - 17h)
-        {
-            startColor = Color.Parse("#87CEEB"); // Xanh da trời
-            endColor = Color.Parse("#F0E68C");   // Vàng nhạt
-            opacity = 0.15;
-        }
-        else if (hour >= 17 && hour < 19) // Hoàng hôn (17h - 19h)
-        {
-            startColor = Color.Parse("#FF4500"); // Cam đỏ
-            endColor = Color.Parse("#8B008B");   // Tím đậm
-            opacity = 0.3;
-        }
-        else if (hour >= 19 && hour < 22) // Tối (19h - 22h)
-        {
-            startColor = Color.Parse("#191970"); // Xanh đêm
-            endColor = Color.Parse("#483D8B");   // Tím đậm
-            opacity = 0.35;
-        }
-        else // Đêm khuya (22h - 5h)
-        {
-            startColor = Color.Parse("#0D0D1A"); // Đen xanh
-            endColor = Color.Parse("#1a1a2e");   // Xanh đêm
-            opacity = 0.4;
-        }
-
-        var gradient = new LinearGradientBrush
-        {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
-            GradientStops = new GradientStops
-            {
-                new GradientStop(startColor, 0.0),
-                new GradientStop(endColor, 1.0)
-            }
-        };
-
-        TimeGradientOverlay.Background = gradient;
-        TimeGradientOverlay.Opacity = opacity;
     }
 
     private async Task UpdateWeatherAsync()
